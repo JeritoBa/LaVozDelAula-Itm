@@ -55,4 +55,9 @@ public class ResenaService {
             );
         }
     }
+    public boolean actualizar(Integer idResena, Resena resena) {
+        validarClaseOMateria(resena);
+        resena.setIdResena(idResena);
+        return resenaRepository.update(resena);
+    }
 }
