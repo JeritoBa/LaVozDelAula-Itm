@@ -53,8 +53,13 @@ public class ResenaRepository {
             return ps;
         }, keyHolder);
 
-        resena.setIdResena(keyHolder.getKey().intValue());
-        return resena;
+        Integer idGenerado = keyHolder.getKeyList().get(0).get("id_resena") instanceof Number
+        ? ((Number) keyHolder.getKeyList().get(0).get("id_resena")).intValue()
+        : null;
+
+resena.setIdResena(idGenerado);
+
+return findById(idGenerado).orElse(resena);
     }
 
     public Optional<Resena> findById(Integer idResena) {
