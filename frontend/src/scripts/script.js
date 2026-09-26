@@ -5,21 +5,6 @@ const CLASS_CATALOG = {
 };
 const SUBJECT_CATALOG = { 1: "Bases de Datos" };
 
-const sampleReviews = [
-	{
-		idResena: 1,
-		calificacionGeneral: 4.5,
-		metodologiaEnsenansa: 4,
-		nivelExigencia: 3.5,
-		comentario: "Excelente clase, el docente explica muy bien los conceptos de bases de datos.",
-		fechaCreacion: "2026-09-25T14:30:00",
-		anonima: false,
-		idEstudiante: 1,
-		idClase: 1,
-		idMateria: null
-	}
-];
-
 const state = { reviews: [], filter: "all", query: "", sort: "recent", source: "loading" };
 const reviewList = document.querySelector("#review-list");
 const reviewDialog = document.querySelector("#review-dialog");
@@ -80,7 +65,7 @@ async function loadReviews() {
 		state.reviews = [...pendingReviews, ...serverReviews];
 		setConnectionStatus("online");
 	} catch {
-		state.reviews = (localReviews.length ? localReviews : sampleReviews.map(review => ({ ...review, isLocal: true }))).map(normalizeReview);
+		state.reviews = localReviews.map(normalizeReview);
 		setConnectionStatus("local");
 	}
 	render();
