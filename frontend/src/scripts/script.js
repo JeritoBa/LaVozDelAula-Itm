@@ -1,5 +1,14 @@
-const API_URL = window.LVA_API_URL || "http://localhost:8080/api/resenas";
-const STORAGE_KEY = "la-voz-del-aula-resenas-v1";
+const apiOrigin = new URL(window.location.origin);
+if (apiOrigin.hostname.includes("-5500.")) {
+	apiOrigin.hostname = apiOrigin.hostname.replace("-5500.", "-8080.");
+} else {
+	apiOrigin.protocol = "http:";
+	apiOrigin.hostname = "localhost";
+	apiOrigin.port = "8080";
+}
+const API_URL = window.LVA_API_URL || new URL("/api/resenas", apiOrigin).toString();
+const STORAGE_KEY = "la-voz-del-aula-resenas-v2";
+localStorage.removeItem("la-voz-del-aula-resenas-v1");
 const CLASS_CATALOG = {
 	1: { title: "Bases de Datos", teacher: "Carlos Andrés Gómez", code: "BD-01" }
 };
@@ -318,3 +327,6 @@ reviewList.addEventListener("click", event => {
 reviewForm.addEventListener("submit", submitReview);
 
 loadReviews();
+window.setInterval(() => {
+	if (!document.hidden) loadReviews();
+}, 5000);
