@@ -112,4 +112,43 @@ return findById(idGenerado).orElse(resena);
 
         return resena;
     }
+    public boolean update(Resena resena) {
+        String sql = "UPDATE resena SET " +
+                "calificacion_general = ?, " +
+                "metodologia_ensenansa = ?, " +
+                "nivel_exigencia = ?, " +
+                "comentario = ?, " +
+                "anonima = ?, " +
+                "id_estudiante = ?, " +
+                "id_clase = ?, " +
+                "id_materia = ? " +
+                "WHERE id_resena = ?";
+
+        int filasAfectadas = jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setBigDecimal(1, resena.getCalificacionGeneral());
+            ps.setBigDecimal(2, resena.getMetodologiaEnsenansa());
+            ps.setBigDecimal(3, resena.getNivelExigencia());
+            ps.setString(4, resena.getComentario());
+            ps.setBoolean(5, resena.isAnonima());
+            ps.setInt(6, resena.getIdEstudiante());
+
+            if (resena.getIdClase() != null) {
+                ps.setInt(7, resena.getIdClase());
+            } else {
+                ps.setNull(7, Types.INTEGER);
+            }
+
+            if (resena.getIdMateria() != null) {
+                ps.setInt(8, resena.getIdMateria());
+            } else {
+                ps.setNull(8, Types.INTEGER);
+            }
+
+            ps.setInt(9, resena.getIdResena());
+            return ps;
+        });
+
+        return filasAfectadas > 0;
+    }
 }
