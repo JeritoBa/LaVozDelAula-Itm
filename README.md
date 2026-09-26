@@ -285,3 +285,7 @@ Proyecto desarrollado por estudiantes del **Instituto Tecnológico Metropolitano
 ### 📄 Licencia
 
 Este proyecto fue desarrollado con fines académicos.
+
+## 📚 Documentación de la API
+La especificación de la API RESTful está publicada e interactiva en SwaggerHub:
+👉 [Ver La Voz del Aula](https://app.swaggerhub.com/apis/itm-8bc/VozDelAula/1.0#/)
