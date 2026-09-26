@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#f6f7f2">
+	<meta name="description" content="Consulta experiencias de estudiantes del ITM y comparte la tuya para elegir tus asignaturas con más contexto.">
+	<link rel="icon" type="image/png" href="public/favicon.png">
+	<title>La Voz del Aula | ITM</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="src/css/index.css">
+	<script src="src/scripts/script.js" defer></script>
+</head>
+<body>
+	<header class="site-header">
+		<a class="brand" href="#inicio" aria-label="La Voz del Aula, inicio">
+			<span class="brand-mark" aria-hidden="true">V</span>
+			<span class="brand-name">La Voz <span>del Aula</span></span>
+		</a>
+		<nav class="main-nav" aria-label="Navegación principal">
+			<a class="nav-link is-current" href="#explorar">Explorar reseñas</a>
+			<a class="nav-link" href="#datos">Lo que cuentan</a>
+		</nav>
+		<button class="button button-dark header-cta" type="button" data-open-review>Escribir reseña <span aria-hidden="true">↗</span></button>
+	</header>
+
+	<main id="inicio">
+		<section class="intro page-shell" aria-labelledby="intro-title">
+			<div class="intro-copy">
+				<p class="eyebrow"><span class="eyebrow-dot"></span> Comunidad ITM · experiencias reales</p>
+				<h1 id="intro-title">Elegir clase también es saber <em>cómo se vive.</em></h1>
+				<p class="intro-text">Experiencias de estudiantes sobre sus docentes y asignaturas. Más contexto para decidir; una voz más para aprender.</p>
+				<a class="text-link" href="#explorar">Descubre lo que cuentan <span aria-hidden="true">↓</span></a>
+			</div>
+			<aside class="intro-aside" aria-label="Estudiantes conversan en el campus">
+				<img class="intro-photo" src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1100&q=85" alt="Estudiantes compartiendo una conversación en el campus">
+				<div class="photo-caption"><span>La comunidad ya compartió</span><strong id="total-count">—</strong><span>experiencias</span></div>
+				<span class="photo-sticker" aria-hidden="true">TU VOZ<br>CUENTA</span>
+			</aside>
+		</section>
+
+		<section class="search-section page-shell" aria-label="Buscar experiencias">
+			<form class="search-bar" id="search-form" role="search">
+				<label class="search-field" for="search-input">
+					<span class="search-symbol" aria-hidden="true">⌕</span>
+					<span class="visually-hidden">Buscar docente, asignatura o tema</span>
+					<input id="search-input" type="search" placeholder="Busca una asignatura, docente o tema" autocomplete="off">
+				</label>
+				<label class="visually-hidden" for="sort-select">Ordenar reseñas</label>
+				<select id="sort-select" class="sort-select" aria-label="Ordenar reseñas">
+					<option value="recent">Más recientes</option>
+					<option value="highest">Mejor valoradas</option>
+					<option value="lowest">Menor calificación</option>
+				</select>
+				<button class="button button-green search-submit" type="submit">Buscar <span aria-hidden="true">↗</span></button>
+			</form>
+			<div class="search-footnote"><span class="status-dot" id="connection-dot"></span><span id="connection-status" role="status">Cargando experiencias…</span><span class="search-note">Calificaciones de 0 a 5 · opiniones moderadas</span></div>
+		</section>
+
+		<section class="content-section page-shell" id="explorar" aria-labelledby="reviews-title">
+			<div class="section-heading">
+				<div>
+					<p class="eyebrow">Voces del campus</p>
+					<h2 id="reviews-title">Experiencias para <em>tener en cuenta.</em></h2>
+				</div>
+				<span class="result-count" id="result-count" aria-live="polite"></span>
+			</div>
+
+			<div class="content-grid">
+				<div class="reviews-column">
+					<div class="filter-row" role="group" aria-label="Filtrar por calificación">
+						<button class="filter-chip is-active" type="button" data-filter="all" aria-pressed="true">Todas</button>
+						<button class="filter-chip" type="button" data-filter="excellent" aria-pressed="false">4.0 y más</button>
+						<button class="filter-chip" type="button" data-filter="needs-context" aria-pressed="false">Con comentario</button>
+					</div>
+					<div class="review-list" id="review-list" aria-live="polite" aria-busy="true"></div>
+				</div>
+
+				<aside class="insight-panel" id="datos" aria-labelledby="insight-title">
+					<div class="insight-topline"><span>El panorama</span><span class="insight-mark" aria-hidden="true">✳</span></div>
+					<h3 id="insight-title">Una nota no cuenta toda la historia.</h3>
+					<p class="insight-copy">Por eso cada experiencia también mira la metodología y el nivel de exigencia.</p>
+					<div class="dimension-list">
+						<div class="dimension-row">
+							<div class="dimension-label"><span>Experiencia general</span><strong id="average-general">—</strong></div>
+							<div class="meter"><span id="meter-general"></span></div>
+						</div>
+						<div class="dimension-row">
+							<div class="dimension-label"><span>Metodología</span><strong id="average-method">—</strong></div>
+							<div class="meter meter-coral"><span id="meter-method"></span></div>
+						</div>
+						<div class="dimension-row">
+							<div class="dimension-label"><span>Nivel de exigencia</span><strong id="average-demand">—</strong></div>
+							<div class="meter meter-yellow"><span id="meter-demand"></span></div>
+						</div>
+					</div>
+					<div class="insight-foot"><span class="foot-asterisk" aria-hidden="true">*</span> Promedios de las reseñas visibles en esta comunidad.</div>
+					<button class="button button-outline insight-cta" type="button" data-open-review>Comparte tu experiencia <span aria-hidden="true">↗</span></button>
+				</aside>
+			</div>
+		</section>
+
+		<section class="closing-band" aria-label="Participa">
+			<div class="closing-inner page-shell">
+				<span class="closing-symbol" aria-hidden="true">✳</span>
+				<p>Lo que viviste puede ayudar<br>a alguien a elegir mejor.</p>
+				<button class="button button-light" type="button" data-open-review>Deja tu reseña <span aria-hidden="true">↗</span></button>
+			</div>
+		</section>
+	</main>
+
+	<footer class="site-footer page-shell">
+		<a class="brand footer-brand" href="#inicio"><span class="brand-mark" aria-hidden="true">V</span><span class="brand-name">La Voz <span>del Aula</span></span></a>
+		<p>Una iniciativa para entender mejor la experiencia académica en el ITM.</p>
+		<a href="#inicio" class="back-top">Volver arriba ↑</a>
+	</footer>
+
+	<dialog class="review-dialog" id="review-dialog" aria-labelledby="dialog-title">
+		<div class="dialog-heading">
+			<div><p class="eyebrow">Tu voz importa</p><h2 id="dialog-title">Comparte tu experiencia.</h2></div>
+			<button class="icon-button" type="button" data-close-dialog aria-label="Cerrar formulario">×</button>
+		</div>
+		<p class="dialog-intro">Cuéntale a la comunidad cómo fue tu experiencia académica. Tus calificaciones deben reflejar una vivencia real.</p>
+		<form id="review-form">
+			<input type="hidden" id="review-id">
+			<input type="hidden" id="student-id" name="idEstudiante" value="1">
+			<div class="form-grid form-grid-two">
+				<label class="form-field" for="target-type">¿Qué quieres reseñar?
+					<select id="target-type" name="targetType">
+						<option value="class">Una clase</option>
+						<option value="subject">Una materia</option>
+					</select>
+				</label>
+			</div>
+			<label class="form-field" for="target-id" id="target-label">Clase
+				<select id="target-id" name="targetId" required>
+					<option value="1">BD-01 · Bases de Datos · Carlos Andrés Gómez</option>
+				</select>
+			</label>
+			<label class="form-field" for="subject-name" id="subject-label" hidden>Pon tu materia
+				<input id="subject-name" name="materiaNombre" type="text" maxlength="120" autocomplete="off" placeholder="Escribe el nombre de tu materia">
+			</label>
+			<div class="rating-fields">
+				<label class="range-field" for="rating-general"><span>Experiencia general <output for="rating-general">4.5</output></span><input id="rating-general" name="calificacionGeneral" type="range" min="0" max="5" step="0.5" value="4.5" required></label>
+				<label class="range-field" for="rating-method"><span>Metodología <output for="rating-method">4.0</output></span><input id="rating-method" name="metodologiaEnsenansa" type="range" min="0" max="5" step="0.5" value="4" ></label>
+				<label class="range-field" for="rating-demand"><span>Nivel de exigencia <output for="rating-demand">3.5</output></span><input id="rating-demand" name="nivelExigencia" type="range" min="0" max="5" step="0.5" value="3.5"></label>
+			</div>
+			<label class="form-field" for="review-comment">Comentario <span class="optional-label">Opcional</span>
+				<textarea id="review-comment" name="comentario" rows="4" maxlength="1000" placeholder="¿Qué te gustaría que otros estudiantes supieran?"></textarea>
+			</label>
+			<label class="privacy-choice" for="anonymous-choice"><input id="anonymous-choice" name="anonima" type="checkbox" checked><span class="custom-check" aria-hidden="true"></span><span><strong>Publicar de forma anónima</strong><small>Tu identidad no aparecerá junto a la reseña.</small></span></label>
+			<p class="form-notice">Las opiniones deben referirse a la experiencia académica y respetar a toda la comunidad.</p>
+			<p class="form-error" id="form-error" role="alert" hidden></p>
+			<div class="dialog-actions"><button class="button button-quiet" type="button" data-close-dialog>Cancelar</button><button class="button button-green" type="submit" id="submit-review">Publicar reseña <span aria-hidden="true">↗</span></button></div>
+		</form>
+	</dialog>
+
+	<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
