@@ -77,4 +77,17 @@ public class ResenaController {
 
         return ResponseEntity.noContent().build();
     }
+    @PutMapping("/{idResena}")
+    public ResponseEntity actualizar(
+            @PathVariable Integer idResena,
+            @RequestBody Resena resena) {
+
+        boolean actualizado = resenaService.actualizar(idResena, resena);
+
+        if (!actualizado) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(resena);
+    }
 }
