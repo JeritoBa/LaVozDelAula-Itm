@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/resenas")
+@CrossOrigin(origins = {"http://localhost:5500", "http://127.0.0.1:5500", "https://1s7w2w6x-5500.use.devtunnels.ms"})
 public class ResenaController {
 
     private final ResenaService resenaService;
