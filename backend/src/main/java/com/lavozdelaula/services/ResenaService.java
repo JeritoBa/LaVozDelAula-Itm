@@ -1,63 +1,26 @@
+
 package com.lavozdelaula.services;
 
 import com.lavozdelaula.entities.Resena;
-import com.lavozdelaula.repositories.ResenaRepository;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@Service
-public class ResenaService {
+public interface ResenaService {
 
-    private final ResenaRepository resenaRepository;
+    Resena crear(Resena resena);
 
-    public ResenaService(ResenaRepository resenaRepository) {
-        this.resenaRepository = resenaRepository;
-    }
+    List<Resena> obtenerTodas();
 
-    public Resena crear(Resena resena) {
-        validarClaseOMateria(resena);
-        return resenaRepository.save(resena);
-    }
+    Optional<Resena> obtenerPorId(Integer idResena);
 
-    public List<Resena> obtenerTodas() {
-        return resenaRepository.findAll();
-    }
+    List<Resena> obtenerPorEstudiante(Integer idEstudiante);
 
-    public Optional<Resena> obtenerPorId(Integer idResena) {
-        return resenaRepository.findById(idResena);
-    }
+    List<Resena> obtenerPorClase(Integer idClase);
 
-    public List<Resena> obtenerPorEstudiante(Integer idEstudiante) {
-        return resenaRepository.findByEstudiante(idEstudiante);
-    }
+    List<Resena> obtenerPorMateria(Integer idMateria);
+    boolean actualizar(Integer idResena, Resena resena);
 
-    public List<Resena> obtenerPorClase(Integer idClase) {
-        return resenaRepository.findByClase(idClase);
-    }
 
-    public List<Resena> obtenerPorMateria(Integer idMateria) {
-        return resenaRepository.findByMateria(idMateria);
-    }
-
-    public boolean eliminar(Integer idResena) {
-        return resenaRepository.deleteById(idResena);
-    }
-
-    private void validarClaseOMateria(Resena resena) {
-        boolean tieneClase = resena.getIdClase() != null;
-        boolean tieneMateria = resena.getIdMateria() != null;
-
-        if (tieneClase == tieneMateria) {
-            throw new IllegalArgumentException(
-                    "idClase e idMateria no pueden ser ambos nulos o ambos con valor"
-            );
-        }
-    }
-    public boolean actualizar(Integer idResena, Resena resena) {
-        validarClaseOMateria(resena);
-        resena.setIdResena(idResena);
-        return resenaRepository.update(resena);
-    }
+    boolean eliminar(Integer idResena);
 }
