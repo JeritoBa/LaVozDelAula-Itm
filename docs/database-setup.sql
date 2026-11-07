@@ -6,6 +6,13 @@ CREATE TABLE estudiante (
     programa_academico    VARCHAR(150)
 );
 
+CREATE TABLE perfil_estudiante (
+    id_perfil_estudiante SERIAL PRIMARY KEY,
+    id_estudiante        INTEGER NOT NULL UNIQUE REFERENCES estudiante(id_estudiante) ON DELETE CASCADE,
+    telefono             VARCHAR(30),
+    foto_url             VARCHAR(500)
+);
+
 CREATE TABLE docente (
     id_docente             SERIAL PRIMARY KEY,
     nombre                  VARCHAR(150) NOT NULL,
@@ -15,6 +22,7 @@ CREATE TABLE docente (
 
 CREATE TABLE materia (
     id_materia     SERIAL PRIMARY KEY,
+    codigo_materia VARCHAR(50) NOT NULL UNIQUE,
     nombre_materia VARCHAR(150) NOT NULL,
     facultad       VARCHAR(150)
 );

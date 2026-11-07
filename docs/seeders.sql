@@ -8,8 +8,8 @@ VALUES ('EST-2023001', 'Juliana Restrepo', 'juliana.restrepo@universidad.edu.co'
 INSERT INTO docente (nombre, departamento_o_facultad, correo_institucional)
 VALUES ('Carlos Andrés Gómez', 'Facultad de Ingeniería', 'carlos.gomez@universidad.edu.co');
 
-INSERT INTO materia (nombre_materia, facultad)
-VALUES ('Bases de Datos', 'Facultad de Ingeniería');
+INSERT INTO materia (codigo_materia, nombre_materia, facultad)
+VALUES ('MAT-BD-01', 'Bases de Datos', 'Facultad de Ingeniería');
 
 INSERT INTO clase (jornada, codigo, horario, id_docente, id_materia)
 VALUES ('Diurna', 'BD-01', 'Lunes y Miércoles 8:00-10:00', 1, 1);
