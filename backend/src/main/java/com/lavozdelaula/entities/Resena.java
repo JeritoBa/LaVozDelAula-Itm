@@ -1,20 +1,51 @@
 package com.lavozdelaula.entities;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Resena {
 
+    @Schema(description = "Identificador generado por la base de datos", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer idResena;
+
+    @Schema(description = "Calificación general del docente, de 0 a 5", example = "4.5", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "La calificación general es obligatoria")
+    @DecimalMin(value = "0.0", inclusive = true, message = "La calificación general debe ser mayor o igual a 0")
+    @DecimalMax(value = "5.0", inclusive = true, message = "La calificación general debe ser menor o igual a 5")
     private BigDecimal calificacionGeneral;
+
+    @Schema(description = "Percepción sobre la metodología de enseñanza, de 0 a 5", example = "4.0")
+    @DecimalMin(value = "0.0", inclusive = true, message = "La metodología debe ser mayor o igual a 0")
+    @DecimalMax(value = "5.0", inclusive = true, message = "La metodología debe ser menor o igual a 5")
     private BigDecimal metodologiaEnsenansa;
+
+    @Schema(description = "Percepción sobre el nivel de exigencia, de 0 a 5", example = "3.5")
+    @DecimalMin(value = "0.0", inclusive = true, message = "El nivel de exigencia debe ser mayor o igual a 0")
+    @DecimalMax(value = "5.0", inclusive = true, message = "El nivel de exigencia debe ser menor o igual a 5")
     private BigDecimal nivelExigencia;
+
+    @Schema(description = "Comentario opcional de la experiencia académica")
+    @Size(max = 10000, message = "El comentario no puede superar 10000 caracteres")
     private String comentario;
+
+    @Schema(description = "Fecha de creación asignada por el backend", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime fechaCreacion;
+    @Schema(description = "Define si la reseña se muestra de forma anónima", example = "false")
     private boolean anonima;
+
+    @Schema(description = "Estudiante autor de la reseña", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "El estudiante es obligatorio")
     private Integer idEstudiante;
-    private Integer idClase;   // nullable
-    private Integer idMateria; // nullable
+    @Schema(description = "Clase asociada; debe indicarse solo esta o idMateria")
+    private Integer idClase;
+    @Schema(description = "Materia asociada; debe indicarse solo esta o idClase")
+    private Integer idMateria;
 
     public Resena() {
     }
