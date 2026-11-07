@@ -196,7 +196,7 @@ Antes de ejecutar el proyecto necesitas tener instalado:
 * Git
 * Un navegador web moderno
 
-Además, se requiere acceso a una instancia de **PostgreSQL** configurada en Supabase.
+Además, se requiere acceso a una instancia de PostgreSQL.
 
 ### 1. Clonar el repositorio
 
@@ -205,11 +205,10 @@ git clone <URL_DEL_REPOSITORIO>
 cd la-voz-del-aula
 ```
 
-### 2. Configurar la base de datos
+### 2. Configurar la base de datos y variables de entorno
 
-Crear/configurar una base de datos PostgreSQL en Supabase y establecer las credenciales necesarias para la aplicación.
-
-Las variables de entorno requeridas se documentarán en la configuración del backend.
+Ejecuta [`docs/database-setup.sql`](./docs/database-setup.sql) en la base de datos PostgreSQL. Para una base que ya existe, ejecuta las migraciones pendientes de [`docs/migrations/`](./docs/migrations/).
+Configura `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` como variables de entorno o en `backend/.env`, tomando [`backend/.env.example`](./backend/.env.example) como referencia. No guardes credenciales reales en Git.
 
 ### 3. Ejecutar el backend
 
@@ -232,19 +231,14 @@ Abrir `frontend/index.html` en un navegador o utilizar un servidor local para se
 
 ## 🔌 API
 
-El backend expone una API REST para permitir la comunicación entre el frontend y la base de datos.
+El backend expone operaciones REST para estudiantes, docentes, materias, clases/asignaciones y reseñas. La lista completa de métodos, rutas, ejemplos y respuestas está en [`docs/contrato-de-api.md`](./docs/contrato-de-api.md).
 
-Ejemplo conceptual:
+Al iniciar el backend, abre Swagger UI y OpenAPI:
 
 ```text
-GET    /api/docentes
-GET    /api/docentes/{id}
-GET    /api/asignaturas
-GET    /api/opiniones
-POST   /api/opiniones
+http://localhost:8080/swagger-ui.html
+http://localhost:8080/api-docs
 ```
-
-> Los endpoints definitivos dependerán del diseño final de la API.
 
 ---
 
@@ -286,9 +280,8 @@ Proyecto desarrollado por estudiantes del **Instituto Tecnológico Metropolitano
 
 Este proyecto fue desarrollado con fines académicos.
 
-## 📚 Documentación de la API con Swagwer
-La especificación de la API RESTful está publicada e interactiva en SwaggerHub:
-👉 [Ver La Voz del Aula](https://app.swaggerhub.com/apis/itm-8bc/VozDelAula/1.0#/)
+## 📚 Documentación de la API con Swagger
+La documentación interactiva se genera desde los controladores y está disponible en `/swagger-ui.html` cuando el backend está en ejecución. El contrato también está en [`docs/contrato-de-api.md`](./docs/contrato-de-api.md).
 
 ## 📚 Documentación Completa📄
 La documentacion completa del proyecto La Voz Del Aula
