@@ -47,7 +47,7 @@ public class ResenaService {
         validar(resena);
         ResenaEntity entity = toEntity(resena);
         entity.setFechaCreacion(LocalDateTime.now());
-        return toDomain(resenaRepository.save(entity), true);
+        return toDomain(resenaRepository.save(entity), false);
     }
 
     @Transactional(readOnly = true)

@@ -78,6 +78,45 @@ class ResenaServiceTest {
     }
 
     @Test
+    void crearResenaAnonimaNoDevuelveElIdDelEstudiante() {
+        solicitud.setAnonima(true);
+        when(estudianteRepository.existsById(10)).thenReturn(true);
+        when(claseRepository.existsById(7)).thenReturn(true);
+        when(estudianteRepository.getReferenceById(10)).thenReturn(estudiante(10));
+        when(claseRepository.getReferenceById(7)).thenReturn(clase(7));
+        when(resenaRepository.save(any(ResenaEntity.class))).thenAnswer(invocation -> {
+            ResenaEntity entity = invocation.getArgument(0);
+            entity.setIdResena(2);
+            return entity;
+        });
+
+        Resena creada = service.crear(solicitud);
+
+        assertEquals(2, creada.getIdResena());
+        assertTrue(creada.isAnonima());
+        assertNull(creada.getIdEstudiante());
+    }
+
+    @Test
+    void crearResenaIdentificadaDevuelveElIdDelEstudiante() {
+        solicitud.setAnonima(false);
+        when(estudianteRepository.existsById(10)).thenReturn(true);
+        when(claseRepository.existsById(7)).thenReturn(true);
+        when(estudianteRepository.getReferenceById(10)).thenReturn(estudiante(10));
+        when(claseRepository.getReferenceById(7)).thenReturn(clase(7));
+        when(resenaRepository.save(any(ResenaEntity.class))).thenAnswer(invocation -> {
+            ResenaEntity entity = invocation.getArgument(0);
+            entity.setIdResena(3);
+            return entity;
+        });
+
+        Resena creada = service.crear(solicitud);
+
+        assertEquals(10, creada.getIdEstudiante());
+        assertFalse(creada.isAnonima());
+    }
+
+    @Test
     void crearRechazaRelacionesInvalidas() {
         solicitud.setIdMateria(12);
         assertThrows(BusinessException.class, () -> service.crear(solicitud));

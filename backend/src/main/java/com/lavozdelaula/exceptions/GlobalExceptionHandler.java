@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,6 +53,14 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         return response(HttpStatus.BAD_REQUEST, "Bad Request",
                 "El parámetro '" + ex.getName() + "' tiene un formato inválido.", request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleUnreadableMessage(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+        return response(HttpStatus.BAD_REQUEST, "Bad Request",
+                "El cuerpo de la solicitud no contiene JSON válido.", request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
