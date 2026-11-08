@@ -2,6 +2,7 @@ package com.lavozdelaula.controllers;
 
 import com.lavozdelaula.dto.MateriaDto;
 import com.lavozdelaula.services.MateriaService;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -39,7 +40,13 @@ public class MateriaController {
         return materiaService.registrar(solicitud);
     }
 
-    @Operation(summary = "Listar materias")
+    @Operation(
+            summary = "Listar materias",
+            description = "Obtiene el listado de materias registradas en el sistema."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Listado de materias obtenido correctamente")
+    })
     @GetMapping
     public List<MateriaDto> obtenerTodas() {
         return materiaService.obtenerTodas();
@@ -51,7 +58,9 @@ public class MateriaController {
             @ApiResponse(responseCode = "404", description = "Materia no encontrada")
     })
     @GetMapping("/{idMateria}")
-    public MateriaDto obtenerPorId(@PathVariable Integer idMateria) {
+    public MateriaDto obtenerPorId(
+        @Parameter(description = "Identificador de la materia")
+        @PathVariable Integer idMateria) {
         return materiaService.obtenerPorId(idMateria);
     }
 }
