@@ -3,6 +3,7 @@ package com.lavozdelaula.controllers;
 import com.lavozdelaula.dto.EstudianteDto;
 import com.lavozdelaula.dto.DocenteDto;
 import com.lavozdelaula.services.EstudianteService;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -39,7 +40,13 @@ public class EstudianteController {
         return estudianteService.registrar(solicitud);
     }
 
-    @Operation(summary = "Listar estudiantes")
+    @Operation(
+            summary = "Listar estudiantes",
+            description = "Obtiene el listado de estudiantes registrados en el sistema."
+    )
+        @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listado de estudiantes obtenido correctamente")
+    })
     @GetMapping
     public List<EstudianteDto> obtenerTodos() {
         return estudianteService.obtenerTodos();
@@ -51,7 +58,9 @@ public class EstudianteController {
             @ApiResponse(responseCode = "404", description = "Estudiante no encontrado")
     })
     @GetMapping("/{idEstudiante}")
-    public EstudianteDto obtenerPorId(@PathVariable Integer idEstudiante) {
+    public EstudianteDto obtenerPorId(
+        @Parameter(description = "Identificador del estudiante")
+        @PathVariable Integer idEstudiante) {
         return estudianteService.obtenerPorId(idEstudiante);
     }
 
@@ -62,7 +71,9 @@ public class EstudianteController {
             @ApiResponse(responseCode = "404", description = "Estudiante no encontrado")
     })
     @GetMapping("/{idEstudiante}/docentes")
-    public List<DocenteDto> obtenerDocentesRelacionados(@PathVariable Integer idEstudiante) {
+    public List<DocenteDto> obtenerDocentesRelacionados(
+        @Parameter(description = "Identificador del estudiante")
+        @PathVariable Integer idEstudiante) {
         return estudianteService.obtenerDocentesRelacionados(idEstudiante);
     }
 }
