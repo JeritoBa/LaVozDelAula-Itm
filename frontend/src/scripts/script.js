@@ -1,83 +1,145 @@
 const apiOrigin = new URL(window.location.origin);
 if (apiOrigin.hostname.includes("-5500.")) {
 	apiOrigin.hostname = apiOrigin.hostname.replace("-5500.", "-8080.");
-} else {
+} else if (apiOrigin.protocol === "file:") {
 	apiOrigin.protocol = "http:";
 	apiOrigin.hostname = "localhost";
 	apiOrigin.port = "8080";
+} else if (["localhost", "127.0.0.1"].includes(apiOrigin.hostname)) {
+	apiOrigin.protocol = "http:";
+	apiOrigin.port = "8080";
 }
-const API_URL = window.LVA_API_URL || new URL("/api/resenas", apiOrigin).toString();
-const STORAGE_KEY = "la-voz-del-aula-resenas-v2";
-localStorage.removeItem("la-voz-del-aula-resenas-v1");
-const CLASS_CATALOG = {
-	1: { title: "Bases de Datos", teacher: "Carlos Andrés Gómez", code: "BD-01" }
-};
-const SUBJECT_CATALOG = { 1: "Bases de Datos" };
 
-const state = { reviews: [], filter: "all", query: "", sort: "recent", source: "loading" };
+const configuredReviewUrl = window.LVA_API_URL || new URL("/api/resenas", apiOrigin).toString();
+const API_URL = new URL(configuredReviewUrl, apiOrigin).toString();
+const API_ORIGIN = new URL(API_URL).origin;
+const state = {
+	reviews: [],
+	classes: [],
+	teachers: new Map(),
+	subjects: new Map(),
+	filter: "all",
+	query: "",
+	sort: "recent",
+	source: "loading",
+	loading: false
+};
+
 const reviewList = document.querySelector("#review-list");
 const reviewDialog = document.querySelector("#review-dialog");
 const reviewForm = document.querySelector("#review-form");
 const toast = document.querySelector("#toast");
 let toastTimeout;
 
-function readLocalReviews() {
-	try {
-		const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-		return Array.isArray(stored) ? stored : [];
-	} catch {
-		return [];
+function apiUrl(path) {
+	return new URL(path, API_ORIGIN).toString();
+}
+
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		...options,
+		headers: { Accept: "application/json", ...options.headers }
+	});
+	if (!response.ok) {
+		let message = `La API respondió ${response.status}.`;
+		try {
+			const error = await response.json();
+			if (error.message) message = error.message;
+		} catch {
+			message = response.statusText || message;
+		}
+		throw new Error(message);
 	}
-}
-
-function storeLocalReviews(reviews) {
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
-}
-
-function normalizeReview(review) {
-	const classInfo = CLASS_CATALOG[review.idClase];
-	const subject = review.materiaNombre || SUBJECT_CATALOG[review.idMateria];
-	return {
-		...review,
-		idResena: review.idResena ?? `local-${Date.now()}`,
-		calificacionGeneral: Number(review.calificacionGeneral) || 0,
-		metodologiaEnsenansa: review.metodologiaEnsenansa == null ? null : Number(review.metodologiaEnsenansa),
-		nivelExigencia: review.nivelExigencia == null ? null : Number(review.nivelExigencia),
-		anonima: Boolean(review.anonima),
-		targetTitle: review.materiaNombre || classInfo?.title || subject || (review.idClase ? `Clase #${review.idClase}` : `Materia #${review.idMateria}`),
-		targetCode: classInfo?.code || (review.idMateria || review.materiaNombre ? "Materia" : "Clase"),
-		teacherName: classInfo?.teacher || "Docente de la asignatura",
-		isLocal: Boolean(review.isLocal)
-	};
+	return response.status === 204 ? null : response.json();
 }
 
 function setConnectionStatus(source) {
 	state.source = source;
 	const label = document.querySelector("#connection-status");
 	const dot = document.querySelector("#connection-dot");
-	const online = source === "online";
-	label.textContent = online ? "Conectado a la API" : source === "loading" ? "Cargando experiencias…" : "Modo local · API no disponible";
-	dot.classList.toggle("is-online", online);
-	dot.classList.toggle("is-local", source === "local");
+	const retry = document.querySelector("#retry-api");
+	label.textContent = source === "online"
+		? "Conectado a la base de datos"
+		: source === "loading" ? "Cargando experiencias…" : "No fue posible conectar con la base de datos";
+	dot.classList.toggle("is-online", source === "online");
+	dot.classList.toggle("is-error", source === "error");
+	retry.hidden = source !== "error";
+}
+
+function classOptionLabel(classInfo) {
+	const teacher = state.teachers.get(classInfo.idDocente);
+	const teacherName = teacher?.nombre || `Docente #${classInfo.idDocente}`;
+	const schedule = classInfo.jornada ? ` · ${classInfo.jornada}` : "";
+	return `${teacherName} · ${classInfo.codigo}${schedule}`;
+}
+
+function populateClassOptions(selectedClassId = "") {
+	const select = document.querySelector("#class-id");
+	select.replaceChildren();
+	const prompt = document.createElement("option");
+	prompt.value = "";
+	prompt.textContent = state.classes.length ? "Selecciona el docente y su grupo" : "No hay grupos registrados";
+	select.append(prompt);
+	for (const classInfo of state.classes) {
+		const option = document.createElement("option");
+		option.value = classInfo.idClase;
+		option.textContent = classOptionLabel(classInfo);
+		select.append(option);
+	}
+	select.value = String(selectedClassId || "");
+	document.querySelector("#submit-review").disabled = state.classes.length === 0;
+}
+
+function normalizeReview(review) {
+	const classInfo = state.classes.find(item => Number(item.idClase) === Number(review.idClase));
+	const subjectId = review.idMateria || classInfo?.idMateria;
+	const subject = state.subjects.get(Number(subjectId));
+	const teacher = state.teachers.get(Number(classInfo?.idDocente));
+	return {
+		...review,
+		calificacionGeneral: Number(review.calificacionGeneral) || 0,
+		metodologiaEnsenansa: review.metodologiaEnsenansa == null ? null : Number(review.metodologiaEnsenansa),
+		nivelExigencia: review.nivelExigencia == null ? null : Number(review.nivelExigencia),
+		anonima: Boolean(review.anonima),
+		targetTitle: subject?.nombreMateria || (subjectId ? `Asignatura #${subjectId}` : "Asignatura no disponible"),
+		targetCode: classInfo?.codigo || (review.idClase ? `Grupo #${review.idClase}` : "Asignatura"),
+		teacherName: teacher?.nombre || (classInfo ? `Docente #${classInfo.idDocente}` : "Docente no disponible")
+	};
 }
 
 async function loadReviews() {
-	const localReviews = readLocalReviews();
+	if (state.loading) return;
+	state.loading = true;
+	setConnectionStatus("loading");
+	reviewList.setAttribute("aria-busy", "true");
 	try {
-		const response = await fetch(API_URL, { headers: { Accept: "application/json" } });
-		if (!response.ok) throw new Error(`API ${response.status}`);
-		const data = await response.json();
-		if (!Array.isArray(data)) throw new Error("La API no devolvió una lista de reseñas");
-		const serverReviews = data.map(normalizeReview);
-		const knownIds = new Set(serverReviews.map(review => String(review.idResena)));
-		const pendingReviews = localReviews.map(normalizeReview).filter(review => !knownIds.has(String(review.idResena)));
-		state.reviews = [...pendingReviews, ...serverReviews];
+		const [reviews, classes, teachers, subjects] = await Promise.all([
+			requestJson(API_URL),
+			requestJson(apiUrl("/api/clases")),
+			requestJson(apiUrl("/api/docentes")),
+			requestJson(apiUrl("/api/materias"))
+		]);
+		if (![reviews, classes, teachers, subjects].every(Array.isArray)) {
+			throw new Error("La API devolvió datos con un formato inesperado.");
+		}
+		state.classes = classes;
+		state.teachers = new Map(teachers.map(teacher => [Number(teacher.idDocente), teacher]));
+		state.subjects = new Map(subjects.map(subject => [Number(subject.idMateria), subject]));
+		state.reviews = reviews.map(normalizeReview);
+		populateClassOptions(document.querySelector("#class-id").value);
 		setConnectionStatus("online");
-	} catch {
-		state.reviews = localReviews.map(normalizeReview);
-		setConnectionStatus("local");
+	} catch (error) {
+		state.reviews = [];
+		state.classes = [];
+		state.teachers.clear();
+		state.subjects.clear();
+		populateClassOptions();
+		setConnectionStatus("error");
+		console.error("No se pudieron cargar datos desde la API", error);
+	} finally {
+		state.loading = false;
+		render();
 	}
-	render();
 }
 
 function escapeHTML(value = "") {
@@ -110,7 +172,8 @@ function visibleReviews() {
 }
 
 function reviewCard(review, index) {
-	const editable = String(review.idEstudiante) === String(document.querySelector("#student-id").value);
+	const studentId = document.querySelector("#student-id").value;
+	const editable = review.idClase != null && studentId && String(review.idEstudiante) === String(studentId);
 	const comment = review.comentario?.trim();
 	const method = review.metodologiaEnsenansa == null ? "Sin calificación" : `${review.metodologiaEnsenansa.toFixed(1)} metodología`;
 	const demand = review.nivelExigencia == null ? "Sin calificación" : `${review.nivelExigencia.toFixed(1)} exigencia`;
@@ -136,7 +199,9 @@ function render() {
 	const reviews = visibleReviews();
 	reviewList.innerHTML = reviews.length
 		? reviews.map(reviewCard).join("")
-		: `<div class="empty-state"><strong>Aún no hay voces por aquí.</strong>Prueba otra búsqueda o comparte la primera experiencia.</div>`;
+		: state.source === "error"
+			? `<div class="empty-state"><strong>No se pudieron cargar las reseñas.</strong>Verifica que el backend esté en ejecución y vuelve a intentarlo.</div>`
+			: `<div class="empty-state"><strong>Aún no hay voces por aquí.</strong>Prueba otra búsqueda o comparte la primera experiencia.</div>`;
 	reviewList.setAttribute("aria-busy", "false");
 	document.querySelector("#result-count").textContent = `${reviews.length} ${reviews.length === 1 ? "experiencia" : "experiencias"}`;
 	document.querySelector("#total-count").textContent = state.reviews.length;
@@ -156,32 +221,19 @@ function openReview(review = null) {
 	reviewForm.reset();
 	document.querySelector("#review-id").value = review ? review.idResena : "";
 	document.querySelector("#dialog-title").textContent = review ? "Edita tu experiencia." : "Comparte tu experiencia.";
-	document.querySelector("#submit-review").innerHTML = review ? "Guardar cambios <span aria-hidden=\"true\">↗</span>" : "Publicar reseña <span aria-hidden=\"true\">↗</span>";
-	document.querySelector("#student-id").value = review?.idEstudiante || 1;
-	document.querySelector("#target-type").value = review?.materiaNombre || review?.idMateria ? "subject" : "class";
-	document.querySelector("#target-id").value = review?.idMateria || review?.idClase || 1;
-	document.querySelector("#subject-name").value = review?.materiaNombre || SUBJECT_CATALOG[review?.idMateria] || "";
+	document.querySelector("#submit-review").textContent = review ? "Guardar cambios ↗" : "Publicar reseña ↗";
+	document.querySelector("#student-id").value = review?.idEstudiante || "";
+	populateClassOptions(review?.idClase || state.classes[0]?.idClase || "");
 	document.querySelector("#rating-general").value = review?.calificacionGeneral ?? 4.5;
 	document.querySelector("#rating-method").value = review?.metodologiaEnsenansa ?? 4;
 	document.querySelector("#rating-demand").value = review?.nivelExigencia ?? 3.5;
 	document.querySelector("#review-comment").value = review?.comentario || "";
 	document.querySelector("#anonymous-choice").checked = review ? review.anonima : true;
-	document.querySelector("#form-error").hidden = true;
-	updateTargetLabel();
-	updateRangeOutputs();
+	const error = document.querySelector("#form-error");
+	error.textContent = state.classes.length ? "" : "No hay grupos registrados en la base de datos.";
+	error.hidden = state.classes.length > 0;
 	reviewDialog.showModal();
-}
-
-function updateTargetLabel() {
-	const isClass = document.querySelector("#target-type").value === "class";
-	document.querySelector("#target-label").hidden = !isClass;
-	document.querySelector("#target-id").required = isClass;
-	document.querySelector("#subject-label").hidden = isClass;
-	document.querySelector("#subject-name").required = !isClass;
-	document.querySelector("#target-label").firstChild.textContent = isClass ? "Clase" : "Materia";
-	document.querySelector("#target-id").innerHTML = isClass
-		? '<option value="1">BD-01 · Bases de Datos · Carlos Andrés Gómez</option>'
-		: '<option value="1">Bases de Datos</option>';
+	updateRangeOutputs();
 }
 
 function updateRangeOutputs() {
@@ -192,20 +244,15 @@ function updateRangeOutputs() {
 
 function getFormPayload() {
 	const formData = new FormData(reviewForm);
-	const targetType = formData.get("targetType");
-	const targetId = Number(formData.get("targetId"));
-	const materiaNombre = String(formData.get("materiaNombre") || "").trim();
-	const catalogEntry = Object.entries(SUBJECT_CATALOG).find(([, name]) => name.toLocaleLowerCase("es") === materiaNombre.toLocaleLowerCase("es"));
 	return {
 		calificacionGeneral: Number(formData.get("calificacionGeneral")),
 		metodologiaEnsenansa: Number(formData.get("metodologiaEnsenansa")),
 		nivelExigencia: Number(formData.get("nivelExigencia")),
-		comentario: String(formData.get("comentario")).trim(),
+		comentario: String(formData.get("comentario") || "").trim(),
 		anonima: formData.get("anonima") === "on",
 		idEstudiante: Number(formData.get("idEstudiante")),
-		idClase: targetType === "class" ? targetId : null,
-		idMateria: targetType === "subject" && catalogEntry ? Number(catalogEntry[0]) : null,
-		materiaNombre: targetType === "subject" ? materiaNombre : ""
+		idClase: Number(formData.get("idClase")),
+		idMateria: null
 	};
 }
 
@@ -214,81 +261,47 @@ async function submitReview(event) {
 	if (!reviewForm.reportValidity()) return;
 	const payload = getFormPayload();
 	if (!Number.isInteger(payload.idEstudiante) || payload.idEstudiante < 1) {
-		document.querySelector("#form-error").textContent = "Ingresa un ID de estudiante válido.";
-		document.querySelector("#form-error").hidden = false;
+		const error = document.querySelector("#form-error");
+		error.textContent = "Ingresa un ID de estudiante válido.";
+		error.hidden = false;
+		return;
+	}
+	if (!Number.isInteger(payload.idClase) || payload.idClase < 1) {
+		const error = document.querySelector("#form-error");
+		error.textContent = "Selecciona el docente y grupo que quieres reseñar.";
+		error.hidden = false;
 		return;
 	}
 
 	const existingId = document.querySelector("#review-id").value;
-	const existingReview = state.reviews.find(review => String(review.idResena) === existingId);
-	const customSubject = Boolean(payload.materiaNombre) && payload.idMateria == null;
-	if (customSubject && existingId && existingReview && !existingReview.isLocal) {
-		document.querySelector("#form-error").textContent = "El backend no permite cambiar una reseña existente a una materia nueva.";
-		document.querySelector("#form-error").hidden = false;
-		return;
-	}
 	const submitButton = document.querySelector("#submit-review");
 	submitButton.disabled = true;
 	submitButton.textContent = "Guardando…";
 	try {
-		if (customSubject) {
-			const localReview = normalizeReview({
-				...(existingReview || {}), ...payload,
-				idResena: existingId || `local-${Date.now()}`,
-				fechaCreacion: existingReview?.fechaCreacion || new Date().toISOString(),
-				isLocal: true
-			});
-			if (existingId) state.reviews = state.reviews.map(review => String(review.idResena) === existingId ? localReview : review);
-			else state.reviews.unshift(localReview);
-			storeLocalReviews(state.reviews.filter(review => review.isLocal));
-			reviewDialog.close();
-			render();
-			showToast("Guardada en este navegador; las materias nuevas aún no están registradas en el backend.");
-			return;
-		}
-		const apiPayload = { ...payload };
-		delete apiPayload.materiaNombre;
-		if (existingId && existingReview && !existingReview.isLocal) {
-			const response = await fetch(`${API_URL}/${encodeURIComponent(existingId)}`, {
-				method: "PUT", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(apiPayload)
-			});
-			if (!response.ok) throw new Error(`API ${response.status}`);
-			const updated = await response.json();
-			state.reviews = state.reviews.map(review => String(review.idResena) === existingId ? normalizeReview(updated) : review);
-			setConnectionStatus("online");
-		} else if (!existingId) {
-			const response = await fetch(API_URL, {
-				method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(apiPayload)
-			});
-			if (!response.ok) throw new Error(`API ${response.status}`);
-			const created = await response.json();
-			state.reviews.unshift(normalizeReview(created));
-			setConnectionStatus("online");
-		} else {
-			const updated = normalizeReview({ ...existingReview, ...payload, isLocal: true });
-			state.reviews = state.reviews.map(review => String(review.idResena) === existingId ? updated : review);
-			storeLocalReviews(state.reviews.filter(review => review.isLocal));
-		}
-		reviewDialog.close();
-		render();
-		showToast(existingId ? "Tu reseña se actualizó." : "Tu reseña se publicó.");
-	} catch {
-		const localReview = normalizeReview({
-			...(existingReview || {}), ...payload,
-			idResena: existingId || `local-${Date.now()}`,
-			fechaCreacion: existingReview?.fechaCreacion || new Date().toISOString(),
-			isLocal: true
+		const url = existingId ? `${API_URL}/${encodeURIComponent(existingId)}` : API_URL;
+		const saved = await requestJson(url, {
+			method: existingId ? "PUT" : "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload)
 		});
-		if (existingId) state.reviews = state.reviews.map(review => String(review.idResena) === existingId ? localReview : review);
-		else state.reviews.unshift(localReview);
-		storeLocalReviews(state.reviews.filter(review => review.isLocal));
-		setConnectionStatus("local");
+		const normalized = normalizeReview(saved);
+		if (existingId) {
+			state.reviews = state.reviews.map(review => String(review.idResena) === existingId ? normalized : review);
+		} else {
+			state.reviews.unshift(normalized);
+		}
+		setConnectionStatus("online");
 		reviewDialog.close();
 		render();
-		showToast("Guardada en este navegador. Se conectará al backend cuando esté disponible.");
+		showToast(existingId ? "Tu reseña se actualizó en la base de datos." : "Tu reseña se guardó en la base de datos.");
+	} catch (error) {
+		const formError = document.querySelector("#form-error");
+		formError.textContent = error.message || "No fue posible guardar la reseña.";
+		formError.hidden = false;
+		setConnectionStatus("error");
 	} finally {
-		submitButton.disabled = false;
-		submitButton.innerHTML = existingId ? "Guardar cambios <span aria-hidden=\"true\">↗</span>" : "Publicar reseña <span aria-hidden=\"true\">↗</span>";
+		submitButton.disabled = state.classes.length === 0;
+		submitButton.textContent = existingId ? "Guardar cambios ↗" : "Publicar reseña ↗";
 	}
 }
 
@@ -316,7 +329,8 @@ document.querySelector("#sort-select").addEventListener("change", event => {
 	state.sort = event.target.value;
 	render();
 });
-document.querySelector("#target-type").addEventListener("change", updateTargetLabel);
+document.querySelector("#student-id").addEventListener("input", render);
+document.querySelector("#retry-api").addEventListener("click", loadReviews);
 document.querySelectorAll(".range-field input").forEach(input => input.addEventListener("input", updateRangeOutputs));
 reviewList.addEventListener("click", event => {
 	const button = event.target.closest("[data-edit-review]");
@@ -329,4 +343,4 @@ reviewForm.addEventListener("submit", submitReview);
 loadReviews();
 window.setInterval(() => {
 	if (!document.hidden) loadReviews();
-}, 5000);
+}, 30000);

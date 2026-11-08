@@ -56,7 +56,7 @@
 				</select>
 				<button class="button button-green search-submit" type="submit">Buscar <span aria-hidden="true">↗</span></button>
 			</form>
-			<div class="search-footnote"><span class="status-dot" id="connection-dot"></span><span id="connection-status" role="status">Cargando experiencias…</span><span class="search-note">Calificaciones de 0 a 5 · opiniones moderadas</span></div>
+			<div class="search-footnote"><span class="status-dot" id="connection-dot"></span><span id="connection-status" role="status">Cargando experiencias…</span><button class="retry-button" id="retry-api" type="button" hidden>Reintentar</button><span class="search-note">Calificaciones de 0 a 5 · opiniones moderadas</span></div>
 		</section>
 
 		<section class="content-section page-shell" id="explorar" aria-labelledby="reviews-title">
@@ -125,22 +125,13 @@
 		<p class="dialog-intro">Cuéntale a la comunidad cómo fue tu experiencia académica. Tus calificaciones deben reflejar una vivencia real.</p>
 		<form id="review-form">
 			<input type="hidden" id="review-id">
-			<input type="hidden" id="student-id" name="idEstudiante" value="1">
-			<div class="form-grid form-grid-two">
-				<label class="form-field" for="target-type">¿Qué quieres reseñar?
-					<select id="target-type" name="targetType">
-						<option value="class">Una clase</option>
-						<option value="subject">Una materia</option>
-					</select>
-				</label>
-			</div>
-			<label class="form-field" for="target-id" id="target-label">Clase
-				<select id="target-id" name="targetId" required>
-					<option value="1">BD-01 · Bases de Datos · Carlos Andrés Gómez</option>
-				</select>
+			<label class="form-field" for="student-id">Tu ID de estudiante
+				<input id="student-id" name="idEstudiante" type="number" min="1" step="1" required>
 			</label>
-			<label class="form-field" for="subject-name" id="subject-label" hidden>Pon tu materia
-				<input id="subject-name" name="materiaNombre" type="text" maxlength="120" autocomplete="off" placeholder="Escribe el nombre de tu materia">
+			<label class="form-field" for="class-id">¿A qué docente y grupo quieres reseñar?
+				<select id="class-id" name="idClase" required>
+					<option value="">Cargando grupos…</option>
+				</select>
 			</label>
 			<div class="rating-fields">
 				<label class="range-field" for="rating-general"><span>Experiencia general <output for="rating-general">4.5</output></span><input id="rating-general" name="calificacionGeneral" type="range" min="0" max="5" step="0.5" value="4.5" required></label>
