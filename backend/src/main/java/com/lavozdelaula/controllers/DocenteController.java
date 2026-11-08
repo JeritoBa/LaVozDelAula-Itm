@@ -2,6 +2,7 @@ package com.lavozdelaula.controllers;
 
 import com.lavozdelaula.dto.DocenteDto;
 import com.lavozdelaula.services.DocenteService;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -38,11 +39,17 @@ public class DocenteController {
     public DocenteDto registrar(@Valid @RequestBody DocenteDto solicitud) {
         return docenteService.registrar(solicitud);
     }
-
-    @Operation(summary = "Listar docentes")
+    
+    @Operation(
+            summary = "Listar docentes",
+            description = "Obtiene el listado de docentes registrados en el sistema."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listado de docentes obtenido correctamente")
+    })
     @GetMapping
     public List<DocenteDto> obtenerTodos() {
-        return docenteService.obtenerTodos();
+    return docenteService.obtenerTodos();
     }
 
     @Operation(summary = "Consultar docente")
@@ -51,7 +58,9 @@ public class DocenteController {
             @ApiResponse(responseCode = "404", description = "Docente no encontrado")
     })
     @GetMapping("/{idDocente}")
-    public DocenteDto obtenerPorId(@PathVariable Integer idDocente) {
-        return docenteService.obtenerPorId(idDocente);
+    public DocenteDto obtenerPorId(
+    @Parameter(description = "Identificador del docente")
+    @PathVariable Integer idDocente) {
+    return docenteService.obtenerPorId(idDocente);
     }
 }
