@@ -233,6 +233,10 @@ Abrir `frontend/index.html` en un navegador o utilizar un servidor local para se
 
 El backend expone operaciones REST para estudiantes, docentes, materias, clases/asignaciones y reseñas. La lista completa de métodos, rutas, ejemplos y respuestas está en [`docs/contrato-de-api.md`](./docs/contrato-de-api.md).
 
+Los flujos funcionales, actores, precondiciones, alternativas y trazabilidad con requisitos se describen en [`docs/casos-de-uso.md`](./docs/casos-de-uso.md). Los casos reflejan la API actual; no garantizan cobertura equivalente en el frontend.
+
+La evaluación de principios SOLID, Clean Code, límites de seguridad y estrategia de pruebas está en [`docs/calidad-y-pruebas.md`](./docs/calidad-y-pruebas.md).
+
 Al iniciar el backend, abre Swagger UI y OpenAPI:
 
 ```text
